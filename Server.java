@@ -1,8 +1,8 @@
 package finalproject.Mia;
 
-import javax.swing.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.net.*;
-import java.io.*;
 
 /**
  * Need to modify to send objects over stream
@@ -10,6 +10,8 @@ import java.io.*;
  */
 public class Server
 {
+    private static ObjectMapper objectMapper;
+
     public static void main(String[] args)
     {
         try
@@ -22,29 +24,15 @@ public class Server
             //establish socket on port 4999
             //begin accepting connections
             ServerSocket serverSocket = new ServerSocket(4999);
-            Socket socket = serverSocket.accept();
-            System.out.println("\nReceived Connection...");
+            Socket socket = null;
 
-            //get data from client (in this example it's a text file)
-            InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-            //write data from client to a file called testOutput.txt
-            System.out.println("\nWriting to file:");
-            String str = bufferedReader.readLine();
-            BufferedWriter writer = new BufferedWriter(new FileWriter("testOutput.txt", true));
-            while(str != null)
+            while (true)
             {
-                System.out.println(str);
-                writer.append(str + "\n");
-                str = bufferedReader.readLine();
+                socket = serverSocket.accept();
+
+                // new thread for a player
+                new ConnectionThread(socket).start();
             }
-
-            //close writer
-            writer.close();
-
-            //close data stream
-            inputStreamReader.close();
         }
         catch (Exception e)
         {

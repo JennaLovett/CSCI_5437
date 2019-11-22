@@ -14,21 +14,25 @@ import java.awt.event.MouseEvent;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Scanner;
 
 public class Client extends JFrame
 {
     private boolean isTurn;
     private final int lives = 6;
-    private final int score = 0;
+    private int currentScore = 0;
     private int playerNumber;
 
     public static void main(String[] args)
     {
-        Client client1 = new Client();
-        client1.setPlayerNumber(1);
-        client1.setTurn(true);
-        client1.loadTitleScreen();
+        Client player1 = new Client();
+        player1.setPlayerNumber(1);
+        player1.setTurn(true);
+        player1.loadTitleScreen();
+
+        Client player2 = new Client();
+        player2.setPlayerNumber(2);
+        player2.setTurn(false);
+        player2.loadTitleScreen();
     }
 
     public Client()
@@ -55,7 +59,7 @@ public class Client extends JFrame
             PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
 
             String jsonMessage = "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"isTurn\":\"" + isTurn() +
-                    "\", \"lives\":\"" + getLives() + "\", \"score\":\"" + getScore() + "\"}";
+                    "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() + "\"}";
 
             //send entire message to server and close stream
             System.out.println("\n\nSending to server: \n" + jsonMessage);
@@ -170,8 +174,8 @@ public class Client extends JFrame
         return lives;
     }
 
-    public int getScore() {
-        return score;
+    public int getCurrentScore() {
+        return currentScore;
     }
 
     public int getPlayerNumber() {
