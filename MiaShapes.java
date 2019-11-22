@@ -12,10 +12,81 @@ import com.sun.j3d.utils.geometry.GeometryInfo;
 
 public class MiaShapes {
 
-	public static GeometryArray createCup()
+	@SuppressWarnings("deprecation")
+	public static GeometryArray createCup(float radius, float height)
 	{
-		IndexedQuadArray shape = new IndexedQuadArray(8, GeometryArray.COORDINATES, 4*8);
-
+		//centered at 0, 0, 0
+		QuadArray shape = new QuadArray(160, GeometryArray.COORDINATES | GeometryArray.TEXTURE_COORDINATE_2 | GeometryArray.NORMALS);
+		
+		float texValInc = 1f/20;
+		float coordInc = (float) ((2f*Math.PI) / 20);
+		
+		for(int i=0, v=0; i<20; i++, v+=4)
+		{
+			float x = (float) (Math.cos(coordInc * i) * radius);
+			float y = (float) (height/2);
+			float z = (float) (Math.sin(coordInc * i) * radius);
+			
+			float x2 = (float) (Math.cos(coordInc * (i+1)) * radius);
+			float y2 = (float) -(height/2);
+			float z2 = (float) (Math.sin(coordInc * (i+1)) * radius);
+			
+			shape.setCoordinate(v, new Point3f(x, y, z));
+			shape.setCoordinate(v+1, new Point3f(x2, y, z2));
+			shape.setCoordinate(v+2, new Point3f(x2, y2, z2));
+			shape.setCoordinate(v+3, new Point3f(x, y2, z));
+			
+			Vector3f n1 = new Vector3f(x, 0, z);
+			n1.normalize();
+			
+			Vector3f n2 = new Vector3f(x2, 0, z2);
+			n2.normalize();
+			
+			shape.setNormal(v, n1);
+			shape.setNormal(v+1, n2);
+			shape.setNormal(v+2, n2);
+			shape.setNormal(v+3, n1);
+			
+			shape.setTextureCoordinate(v, new Point2f(texValInc*i, 0));
+			shape.setTextureCoordinate(v+1, new Point2f(texValInc*(i+1), 0));
+			shape.setTextureCoordinate(v+2, new Point2f(texValInc*(i+1), 1));
+			shape.setTextureCoordinate(v+3, new Point2f(texValInc*i, 1));
+		}
+		
+		//cover the bottom
+		for(int i=0, v=0; i<20; i++, v+=4)
+		{
+			float x = (float) (Math.cos(coordInc * i) * radius);
+			float y = (float) -(height/2);
+			float z = (float) (Math.sin(coordInc * i) * radius);
+			
+			float x2 = (float) (Math.cos(coordInc * (i+1)) * radius);
+			float y2 = (float) -(height/2);
+			float z2 = (float) (Math.sin(coordInc * (i+1)) * radius);
+			
+			float x3 = 0;
+			float y3 = -(height/2);
+			float z3 = 0;
+			
+			shape.setCoordinate(80+v, new Point3f(x, y, z));
+			shape.setCoordinate(80+v+1, new Point3f(x2, y2, z2));
+			shape.setCoordinate(80+v+2, new Point3f(x3, y3, z3));
+			shape.setCoordinate(80+v+3, new Point3f(x3, y3, z3));
+			
+			Vector3f n1 = new Vector3f(0, -1, 0);
+			n1.normalize();
+			
+			shape.setNormal(80+v, n1);
+			shape.setNormal(80+v+1, n1);
+			shape.setNormal(80+v+2, n1);
+			shape.setNormal(80+v+3, n1);
+			
+			shape.setTextureCoordinate(80+v, new Point2f(texValInc*i, 0));
+			shape.setTextureCoordinate(80+v+1, new Point2f(texValInc*(i+1), 0));
+			shape.setTextureCoordinate(80+v+2, new Point2f(0.5f, 0.5f));
+			shape.setTextureCoordinate(80+v+3, new Point2f(0.5f, 0.5f));
+		}
+		
 		return shape;
 	}
 	
