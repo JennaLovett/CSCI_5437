@@ -1,4 +1,4 @@
-package finalProject.Mia;
+package finalproject.Mia;
 
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedQuadArray;

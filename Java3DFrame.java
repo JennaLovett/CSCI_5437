@@ -1,4 +1,4 @@
-package finalProject.Mia;
+package finalproject.Mia;
 
 import java.awt.BorderLayout;
 import java.awt.GraphicsConfiguration;

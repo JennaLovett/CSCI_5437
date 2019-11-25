@@ -6,9 +6,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class PlayerData
 {
     private int playerNumber;
-    private boolean isTurn;
+    private int turn;   //0 = false, 1 = true
     private int lives;
     private int currentScore;
+    private String screen;
 
     public int getPlayerNumber() {
         return playerNumber;
@@ -18,12 +19,12 @@ public class PlayerData
         this.playerNumber = playerNumber;
     }
 
-    public boolean isTurn() {
-        return isTurn;
+    public int getTurn() {
+        return turn;
     }
 
-    public void setTurn(boolean turn) {
-        isTurn = turn;
+    public void setTurn(int turn) {
+        this.turn = turn;
     }
 
     public int getLives() {
@@ -42,12 +43,19 @@ public class PlayerData
         this.currentScore = currentScore;
     }
 
+    public String getScreen() {
+        return screen;
+    }
+
+    public void setScreen(String screen) {
+        this.screen = screen;
+    }
+
     public String toString()
     {
-        return "PlayerData{\nplayerNumber=" + getPlayerNumber() + "\n" +
-                "isTurn=" + isTurn() + "\n" +
-                "lives=" + getLives() + "\n" +
-                "currentScore=" + getCurrentScore() + "\n}";
+        return "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
+                "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() +
+                "\", \"screen\":\"" + getScreen() + "\"}";
     }
 
 }

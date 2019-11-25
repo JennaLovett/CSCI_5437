@@ -1,6 +1,8 @@
 package finalproject.Mia;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.j3d.utils.universe.SimpleUniverse;
+import finalproject.Mia.model.PlayerData;
 
 import javax.media.j3d.*;
 import javax.swing.*;
@@ -11,27 +13,37 @@ import javax.vecmath.Vector3f;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
 public class Client extends JFrame
 {
-    private boolean isTurn;
+    //variables involving data to send/receiving to/from server
+    private int turn;
     private final int lives = 6;
     private int currentScore = 0;
     private int playerNumber;
+    private String screen;
+    private String jsonMessage = "";
+    private ObjectMapper objectMapper = new ObjectMapper();
+    private PlayerData playerData;
+
+    //variables involving screen and rendering
+    JPanel jPanel;
 
     public static void main(String[] args)
     {
         Client player1 = new Client();
         player1.setPlayerNumber(1);
-        player1.setTurn(true);
+        player1.setTurn(1);
         player1.loadTitleScreen();
 
         Client player2 = new Client();
         player2.setPlayerNumber(2);
-        player2.setTurn(false);
+        player2.setTurn(0);
         player2.loadTitleScreen();
     }
 
@@ -58,14 +70,25 @@ public class Client extends JFrame
             //open stream to write from file testInput1.txt (not included)
             PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
 
-            String jsonMessage = "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"isTurn\":\"" + isTurn() +
-                    "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() + "\"}";
-
             //send entire message to server and close stream
-            System.out.println("\n\nSending to server: \n" + jsonMessage);
+            System.out.println("\n\nSending to server:\t" + jsonMessage);
             printWriter.println(jsonMessage);
+
+            // to read data from the server
             printWriter.flush();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            jsonMessage = bufferedReader.readLine();
+            System.out.println("Receiving from server:\t" + jsonMessage);
+
+            //close connection
             printWriter.close();
+            bufferedReader.close();
+
+            playerData = objectMapper.readValue(jsonMessage, PlayerData.class);
+            System.out.println("New playerData = \t" + playerData.toString());
+
+            //load screen
+            loadScreen(playerData.getScreen());
         }
         catch (Exception e)
         {
@@ -76,7 +99,11 @@ public class Client extends JFrame
     public void loadTitleScreen()
     {
         setTitle("Mia - " + getPlayerNumber());
-        JPanel jPanel = new JPanel();
+        setScreen("title");
+        jsonMessage = "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
+                "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() +
+                "\", \"screen\":\"" + getScreen() + "\"}";
+        jPanel = new JPanel();
         initialize(jPanel);
         getContentPane().add(jPanel, BorderLayout.CENTER);
         pack();
@@ -91,7 +118,7 @@ public class Client extends JFrame
         canvas3D.setSize(400, 400);
         SimpleUniverse universe = new SimpleUniverse(canvas3D);
         BranchGroup branchGroup = new BranchGroup();
-        addText(branchGroup);
+        addTitleText(branchGroup);
         addLights(branchGroup);
         universe.getViewingPlatform().setNominalViewingTransform();
         universe.addBranchGraph(branchGroup);
@@ -107,6 +134,27 @@ public class Client extends JFrame
 
         });
         jPanel.add(startBtn, BorderLayout.SOUTH);
+    }
+
+    public void loadScreen(String screen)
+    {
+        if(screen.equalsIgnoreCase("waiting"))
+        {
+            jPanel.setLayout(new BorderLayout());
+            GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
+            Canvas3D canvas3D = new Canvas3D(config);
+            canvas3D.setSize(400, 400);
+            SimpleUniverse universe = new SimpleUniverse(canvas3D);
+            BranchGroup branchGroup = new BranchGroup();
+            addWaitingText(branchGroup);
+            addLights(branchGroup);
+            universe.getViewingPlatform().setNominalViewingTransform();
+            universe.addBranchGraph(branchGroup);
+            jPanel.add(canvas3D, BorderLayout.CENTER);
+        }
+        getContentPane().add(jPanel, BorderLayout.CENTER);
+        pack();
+        setVisible(true);
     }
 
     public void addLights(BranchGroup branchGroup) {
@@ -127,7 +175,7 @@ public class Client extends JFrame
         branchGroup.addChild(back);
     }
 
-    private void addText(BranchGroup branchGroup) {
+    private void addTitleText(BranchGroup branchGroup) {
         Font3D font3D = new Font3D(new Font("Arial", Font.BOLD, 1),
                 new FontExtrusion());
 
@@ -162,12 +210,39 @@ public class Client extends JFrame
         branchGroup.addChild(transformGroup);
     }
 
-    public boolean isTurn() {
-        return isTurn;
+    private void addWaitingText(BranchGroup branchGroup) {
+        Font3D font3D = new Font3D(new Font("Arial", Font.BOLD, 1),
+                new FontExtrusion());
+
+        Text3D firstName = new Text3D(font3D, "WAITING", new Point3f(-1.5f, 1f, -4.8f));
+        firstName.setString("WAITING");
+
+        Color3f red = new Color3f(1.0f, 0f, 0f);
+        Color3f reddish = new Color3f(1.0f, 0.1f, 0.1f);
+        Appearance appearance = new Appearance();
+        Material material = new Material(reddish, reddish, reddish, red, 82.0f);
+        material.setLightingEnable(true);
+        appearance.setMaterial(material);
+
+        Shape3D shape3D1 = new Shape3D();
+        shape3D1.setGeometry(firstName);
+        shape3D1.setAppearance(appearance);
+
+        TransformGroup transformGroup = new TransformGroup();
+        Transform3D transform3D = new Transform3D();
+        Vector3f v3f = new Vector3f(-1.0f, -1.0f, -4f);
+        transform3D.setTranslation(v3f);
+        transformGroup.setTransform(transform3D);
+        transformGroup.addChild(shape3D1);
+        branchGroup.addChild(transformGroup);
     }
 
-    public void setTurn(boolean turn) {
-        isTurn = turn;
+    public int getTurn() {
+        return turn;
+    }
+
+    public void setTurn(int turn) {
+        this.turn = turn;
     }
 
     public int getLives() {
@@ -184,5 +259,13 @@ public class Client extends JFrame
 
     public void setPlayerNumber(int playerNumber) {
         this.playerNumber = playerNumber;
+    }
+
+    public String getScreen() {
+        return screen;
+    }
+
+    public void setScreen(String screen) {
+        this.screen = screen;
     }
 }
