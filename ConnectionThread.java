@@ -58,6 +58,11 @@ public class ConnectionThread extends Thread
             nextScreen = "waiting";
             playerData.setScreen(nextScreen);
         }
+        else if(currentScreen.equalsIgnoreCase("title") && playerData.getPlayerNumber() == 1)
+        {
+            nextScreen = "play";
+            playerData.setScreen(nextScreen);
+        }
         System.out.println("Deciding screen...\t" + playerData.toString());
         return playerData.toString();
     }

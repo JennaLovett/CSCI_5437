@@ -1,6 +1,8 @@
 package finalproject.Mia;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.j3d.utils.geometry.GeometryInfo;
+import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import finalproject.Mia.model.PlayerData;
 
@@ -30,6 +32,7 @@ public class Client extends JFrame
     private String jsonMessage = "";
     private ObjectMapper objectMapper = new ObjectMapper();
     private PlayerData playerData;
+    private JTextField textField;
 
     //variables involving screen and rendering
     JPanel jPanel;
@@ -152,9 +155,74 @@ public class Client extends JFrame
             universe.addBranchGraph(branchGroup);
             jPanel.add(canvas3D, BorderLayout.CENTER);
         }
+        else if(screen.equalsIgnoreCase("play"))
+        {
+            jPanel.removeAll();
+            jPanel.setLayout(new BorderLayout());
+            GraphicsConfiguration gc = SimpleUniverse.getPreferredConfiguration();
+            Canvas3D cv = new Canvas3D(gc);
+            cv.setSize(400,400);
+            BranchGroup bg = createSceneGraph();
+            bg.compile();
+            SimpleUniverse su = new SimpleUniverse(cv);
+            su.getViewingPlatform().setNominalViewingTransform();
+            su.addBranchGraph(bg);
+
+            textField = new JTextField(1);
+            jPanel.add(textField, BorderLayout.NORTH);
+            JButton passBtn = new JButton("Pass Dice");
+            passBtn.addMouseListener(new MouseAdapter()
+            {
+                public void mouseClicked(MouseEvent m)
+                {
+                    connectToServer();
+                }
+
+            });
+            jPanel.add(passBtn, BorderLayout.SOUTH);
+            jPanel.add(cv, BorderLayout.CENTER);
+        }
         getContentPane().add(jPanel, BorderLayout.CENTER);
         pack();
         setVisible(true);
+    }
+
+    private BranchGroup createSceneGraph() {
+        BranchGroup root = new BranchGroup();
+        TransformGroup spin = new TransformGroup();
+        spin.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        root.addChild(spin);
+        //object
+        Appearance ap = new Appearance();
+        ap.setMaterial(new Material());
+        PolygonAttributes pa = new PolygonAttributes();
+        pa.setBackFaceNormalFlip(true);
+        pa.setCullFace(PolygonAttributes.CULL_NONE);
+        ap.setPolygonAttributes(pa);
+        Shape3D shape = new Shape3D(MiaShapes.createCup(1,2), ap);
+        //transformation
+        Transform3D tr = new Transform3D();
+        tr.setScale(0.4);
+        TransformGroup tg = new TransformGroup(tr);
+        spin.addChild(tg);
+        tg.addChild(shape);
+        Alpha alpha = new Alpha(-1, 10000);
+        RotationInterpolator rotator = new RotationInterpolator(alpha, spin);
+        BoundingSphere bounds = new BoundingSphere();
+        bounds.setRadius(100);
+        rotator.setSchedulingBounds(bounds);
+        spin.addChild(rotator);
+        //light
+        PointLight light = new PointLight(new Color3f(Color.white),
+                new Point3f(0.5f,0.5f,1f),
+                new Point3f(1f,0.2f,0f));
+        light.setInfluencingBounds(bounds);
+        root.addChild(light);
+        //background
+        Background background = new Background(1.0f, 1.0f, 1.0f);
+        background.setApplicationBounds(bounds);
+        root.addChild(background);
+        return root;
     }
 
     public void addLights(BranchGroup branchGroup) {
