@@ -3,9 +3,11 @@ package finalproject.Mia;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.NormalGenerator;
+import com.sun.j3d.utils.image.TextureLoader;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import finalproject.Mia.model.PlayerData;
 
+import javax.imageio.ImageIO;
 import javax.media.j3d.*;
 import javax.swing.*;
 import javax.vecmath.Color3f;
@@ -16,6 +18,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -35,8 +39,12 @@ public class Client extends JFrame
     private JTextField textField;
 
     //variables involving screen and rendering
-    JPanel jPanel;
-
+    private JPanel jPanel;
+    
+    private SimpleUniverse myUniverse;
+    private BranchGroup myBranchGroup;
+    private Canvas3D myCanvas;
+    
     public static void main(String[] args)
     {
         Client player1 = new Client();
@@ -91,12 +99,15 @@ public class Client extends JFrame
             System.out.println("New playerData = \t" + playerData.toString());
 
             //load screen
-            loadScreen(playerData.getScreen());
+            //loadScreen(playerData.getScreen());
         }
         catch (Exception e)
         {
             System.out.println(e.getMessage());
         }
+        
+        //load screen
+        loadScreen(playerData.getScreen());
     }
 
     public void loadTitleScreen()
@@ -113,19 +124,25 @@ public class Client extends JFrame
         setVisible(true);
     }
 
+    private void clearPanel()
+    {
+    	jPanel.removeAll();
+    	
+    }
+    
     public void initialize(JPanel jPanel)
     {
         jPanel.setLayout(new BorderLayout());
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
-        Canvas3D canvas3D = new Canvas3D(config);
-        canvas3D.setSize(400, 400);
-        SimpleUniverse universe = new SimpleUniverse(canvas3D);
-        BranchGroup branchGroup = new BranchGroup();
-        addTitleText(branchGroup);
-        addLights(branchGroup);
-        universe.getViewingPlatform().setNominalViewingTransform();
-        universe.addBranchGraph(branchGroup);
-        jPanel.add(canvas3D, BorderLayout.CENTER);
+        myCanvas = new Canvas3D(config);
+        myCanvas.setSize(400, 400);
+        myUniverse = new SimpleUniverse(myCanvas);
+        
+        myBranchGroup = createTitleScreenBranchGroup();
+        
+        myUniverse.getViewingPlatform().setNominalViewingTransform();
+        myUniverse.addBranchGraph(myBranchGroup);
+        jPanel.add(myCanvas, BorderLayout.CENTER);
 
         JButton startBtn = new JButton("Start Game");
         startBtn.addMouseListener(new MouseAdapter()
@@ -138,39 +155,58 @@ public class Client extends JFrame
         });
         jPanel.add(startBtn, BorderLayout.SOUTH);
     }
+    
+    private BranchGroup createTitleScreenBranchGroup()
+    {
+    	BranchGroup branchGroup = new BranchGroup();
+    	addTitleText(branchGroup);
+    	addLights(branchGroup);
+    	branchGroup.setCapability(BranchGroup.ALLOW_DETACH);
+    	return branchGroup;
+    }
+    
+    private BranchGroup createWaitingScreenBranchGroup()
+    {
+    	BranchGroup branchGroup = new BranchGroup();
+        addWaitingText(branchGroup);
+        addLights(branchGroup);
+        branchGroup.setCapability(BranchGroup.ALLOW_DETACH);
+    	return branchGroup;
+    }
 
+    private BranchGroup createPlayingScreenBranchGroup()
+    {
+    	BranchGroup branchGroup = createPlayScreen();
+        branchGroup.setCapability(BranchGroup.ALLOW_DETACH);
+        return branchGroup;
+    }
+    
     public void loadScreen(String screen)
     {
+    	myBranchGroup.detach();
+    	myBranchGroup.removeAllChildren();
+    	
         if(screen.equalsIgnoreCase("waiting"))
         {
-            jPanel.setLayout(new BorderLayout());
-            GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
-            Canvas3D canvas3D = new Canvas3D(config);
-            canvas3D.setSize(400, 400);
-            SimpleUniverse universe = new SimpleUniverse(canvas3D);
-            BranchGroup branchGroup = new BranchGroup();
-            addWaitingText(branchGroup);
-            addLights(branchGroup);
-            universe.getViewingPlatform().setNominalViewingTransform();
-            universe.addBranchGraph(branchGroup);
-            jPanel.add(canvas3D, BorderLayout.CENTER);
+        	clearPanel();
+        	myBranchGroup = createWaitingScreenBranchGroup();
+            myUniverse.addBranchGraph(myBranchGroup);
+            jPanel.add(myCanvas, BorderLayout.CENTER);
         }
         else if(screen.equalsIgnoreCase("play"))
         {
-            jPanel.removeAll();
-            jPanel.setLayout(new BorderLayout());
-            GraphicsConfiguration gc = SimpleUniverse.getPreferredConfiguration();
-            Canvas3D cv = new Canvas3D(gc);
-            cv.setSize(400,400);
-            BranchGroup bg = createSceneGraph();
-            bg.compile();
-            SimpleUniverse su = new SimpleUniverse(cv);
-            su.getViewingPlatform().setNominalViewingTransform();
-            su.addBranchGraph(bg);
+        	clearPanel();
+        	jPanel.setLayout(new BorderLayout());
+        	
+        	myBranchGroup = createPlayingScreenBranchGroup();
+            myUniverse.addBranchGraph(myBranchGroup);
+            jPanel.add(myCanvas, BorderLayout.CENTER);
 
             textField = new JTextField(1);
             jPanel.add(textField, BorderLayout.NORTH);
             JButton passBtn = new JButton("Pass Dice");
+            passBtn.setVisible(true);
+            
             passBtn.addMouseListener(new MouseAdapter()
             {
                 public void mouseClicked(MouseEvent m)
@@ -180,14 +216,19 @@ public class Client extends JFrame
 
             });
             jPanel.add(passBtn, BorderLayout.SOUTH);
-            jPanel.add(cv, BorderLayout.CENTER);
+            
         }
-        getContentPane().add(jPanel, BorderLayout.CENTER);
-        pack();
-        setVisible(true);
+        
+        this.revalidate();
+        this.repaint();
+        
+        //this.repaint();
+        //getContentPane().add(jPanel, BorderLayout.CENTER);
+        //pack();
+        //setVisible(true);
     }
 
-    private BranchGroup createSceneGraph() {
+    private BranchGroup createPlayScreen() {
         BranchGroup root = new BranchGroup();
         TransformGroup spin = new TransformGroup();
         spin.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
@@ -199,7 +240,26 @@ public class Client extends JFrame
         pa.setBackFaceNormalFlip(true);
         pa.setCullFace(PolygonAttributes.CULL_NONE);
         ap.setPolygonAttributes(pa);
-        Shape3D shape = new Shape3D(MiaShapes.createCup(1,2), ap);
+        
+        //load texture for cup
+        Texture tex = null;
+		try {
+			tex = new TextureLoader(ImageIO.read( new File("CupTexture.png"))).getTexture();
+			tex.setBoundaryModeS(Texture.WRAP);
+			tex.setBoundaryModeT(Texture.WRAP);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		TextureAttributes texAttrib = new TextureAttributes();
+		texAttrib.setTextureMode(TextureAttributes.MODULATE);
+		if(tex!=null)
+		{
+			ap.setTexture(tex);
+			ap.setTextureAttributes(texAttrib);
+		}
+        
+        Shape3D shape = new Shape3D(MiaShapes.createCup(40,1,2), ap);
         //transformation
         Transform3D tr = new Transform3D();
         tr.setScale(0.4);
@@ -222,6 +282,7 @@ public class Client extends JFrame
         Background background = new Background(1.0f, 1.0f, 1.0f);
         background.setApplicationBounds(bounds);
         root.addChild(background);
+        
         return root;
     }
 
