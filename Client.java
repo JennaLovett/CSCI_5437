@@ -1,8 +1,6 @@
 package finalproject.Mia;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import finalproject.Mia.model.PlayerData;
 
@@ -20,6 +18,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Client extends JFrame
 {
@@ -91,12 +91,80 @@ public class Client extends JFrame
             System.out.println("New playerData = \t" + playerData.toString());
 
             //load screen
-            loadScreen(playerData.getScreen());
+            if(playerData.getScreen().equalsIgnoreCase("waiting"))
+            {
+                loadScreen(playerData.getScreen());
+                checkForScreenChange();
+            }
+            else
+            {
+                loadScreen(playerData.getScreen());
+            }
+
         }
         catch (Exception e)
         {
             System.out.println(e.getMessage());
         }
+    }
+
+    /**
+     * Used when player on waiting screen
+     */
+    private void checkForScreenChange()
+    {
+        String server;
+        server = "localhost";
+
+        Timer timer = new Timer();
+
+        timer.schedule(new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    if(playerData.getScreen().equalsIgnoreCase("waiting"))
+                    {
+                        //create socket to connect to server address on port 4999
+                        Socket socket = new Socket(server, 4999);
+
+                        //open stream to write to server
+                        PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
+
+                        //open stream to read from server
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                        //send entire message to server and close stream
+                        System.out.println("\n\nSending to server:\t" + jsonMessage);
+                        printWriter.println(jsonMessage);
+                        printWriter.flush();
+
+                        // to read data from the server
+                        jsonMessage = bufferedReader.readLine();
+                        System.out.println("Receiving from server:\t" + jsonMessage);
+
+                        playerData = objectMapper.readValue(jsonMessage, PlayerData.class);
+                        System.out.println("New playerData = \t" + playerData.toString());
+
+                        //close connection
+                        printWriter.close();
+                        bufferedReader.close();
+                    }
+                    else
+                    {
+                        loadScreen(playerData.getScreen());
+                        timer.cancel();
+                        timer.purge();
+                    }
+                }
+                catch(Exception e)
+                {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }, 0, 7000);
     }
 
     public void loadTitleScreen()
@@ -105,7 +173,7 @@ public class Client extends JFrame
         setScreen("title");
         jsonMessage = "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
                 "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() +
-                "\", \"screen\":\"" + getScreen() + "\"}";
+                "\", \"screen\":\"" + getScreen() + "\", \"flag\":\"0\"}";
         jPanel = new JPanel();
         initialize(jPanel);
         getContentPane().add(jPanel, BorderLayout.CENTER);

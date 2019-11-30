@@ -10,6 +10,7 @@ public class PlayerData
     private int lives;
     private int currentScore;
     private String screen;
+    private int flag; //just got done playing if 1, otherwise 0
 
     public int getPlayerNumber() {
         return playerNumber;
@@ -51,11 +52,20 @@ public class PlayerData
         this.screen = screen;
     }
 
+    public int getFlag() {
+        return flag;
+    }
+
+    public void setFlag(int flag) {
+        this.flag = flag;
+    }
+
     public String toString()
     {
         return "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
                 "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() +
-                "\", \"screen\":\"" + getScreen() + "\"}";
+                "\", \"screen\":\"" + getScreen() +
+                "\", \"flag\":\"" + getFlag() + "\"}";
     }
 
 }
