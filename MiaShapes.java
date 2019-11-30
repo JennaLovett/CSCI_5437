@@ -13,15 +13,18 @@ import com.sun.j3d.utils.geometry.GeometryInfo;
 public class MiaShapes {
 
 	@SuppressWarnings("deprecation")
-	public static GeometryArray createCup(float radius, float height)
+	public static GeometryArray createCup(int steps, float radius, float height)
 	{
 		//centered at 0, 0, 0
-		QuadArray shape = new QuadArray(160, GeometryArray.COORDINATES | GeometryArray.TEXTURE_COORDINATE_2 | GeometryArray.NORMALS);
 		
-		float texValInc = 1f/20;
-		float coordInc = (float) ((2f*Math.PI) / 20);
+		int maxQuads = steps*8;
 		
-		for(int i=0, v=0; i<20; i++, v+=4)
+		QuadArray shape = new QuadArray(maxQuads, GeometryArray.COORDINATES | GeometryArray.TEXTURE_COORDINATE_2 | GeometryArray.NORMALS);
+		
+		float texValInc = 1f/steps;
+		float coordInc = (float) ((2f*Math.PI) / steps);
+		
+		for(int i=0, v=0; i<steps; i++, v+=4)
 		{
 			float x = (float) (Math.cos(coordInc * i) * radius);
 			float y = (float) (height/2);
@@ -53,8 +56,9 @@ public class MiaShapes {
 			shape.setTextureCoordinate(v+3, new Point2f(texValInc*i, 1));
 		}
 		
+		int offset = steps*4;
 		//cover the bottom
-		for(int i=0, v=0; i<20; i++, v+=4)
+		for(int i=0, v=0; i<steps; i++, v+=4)
 		{
 			float x = (float) (Math.cos(coordInc * i) * radius);
 			float y = (float) -(height/2);
@@ -68,23 +72,23 @@ public class MiaShapes {
 			float y3 = -(height/2);
 			float z3 = 0;
 			
-			shape.setCoordinate(80+v, new Point3f(x, y, z));
-			shape.setCoordinate(80+v+1, new Point3f(x2, y2, z2));
-			shape.setCoordinate(80+v+2, new Point3f(x3, y3, z3));
-			shape.setCoordinate(80+v+3, new Point3f(x3, y3, z3));
+			shape.setCoordinate(offset+v, new Point3f(x, y, z));
+			shape.setCoordinate(offset+v+1, new Point3f(x2, y2, z2));
+			shape.setCoordinate(offset+v+2, new Point3f(x3, y3, z3));
+			shape.setCoordinate(offset+v+3, new Point3f(x3, y3, z3));
 			
 			Vector3f n1 = new Vector3f(0, -1, 0);
 			n1.normalize();
 			
-			shape.setNormal(80+v, n1);
-			shape.setNormal(80+v+1, n1);
-			shape.setNormal(80+v+2, n1);
-			shape.setNormal(80+v+3, n1);
+			shape.setNormal(offset+v, n1);
+			shape.setNormal(offset+v+1, n1);
+			shape.setNormal(offset+v+2, n1);
+			shape.setNormal(offset+v+3, n1);
 			
-			shape.setTextureCoordinate(80+v, new Point2f(texValInc*i, 0));
-			shape.setTextureCoordinate(80+v+1, new Point2f(texValInc*(i+1), 0));
-			shape.setTextureCoordinate(80+v+2, new Point2f(0.5f, 0.5f));
-			shape.setTextureCoordinate(80+v+3, new Point2f(0.5f, 0.5f));
+			shape.setTextureCoordinate(offset+v, new Point2f(texValInc*i, 0));
+			shape.setTextureCoordinate(offset+v+1, new Point2f(texValInc*(i+1), 0));
+			shape.setTextureCoordinate(offset+v+2, new Point2f(0.5f, 0.5f));
+			shape.setTextureCoordinate(offset+v+3, new Point2f(0.5f, 0.5f));
 		}
 		
 		return shape;
