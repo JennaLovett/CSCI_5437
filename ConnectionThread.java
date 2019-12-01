@@ -50,20 +50,57 @@ public class ConnectionThread extends Thread
     private String decideNextScreen(String currentScreen)
     {
         String nextScreen = "";
+        int currentPlayerNumber = playerData.getPlayerNumber();
+        //if we are dealing with player 1 and player 2 is waiting, then player 1 should play
 
+        if(currentPlayerNumber == 2 && playerData.getScreen().equalsIgnoreCase("waiting")
+                && Server.getPlayerDataList().get(1).getScreen().equalsIgnoreCase("waiting")
+                && Server.getPlayerDataList().get(1).getFlag() == 1)
+        {
+            nextScreen = "play";
+            playerData.setScreen(nextScreen);
+            playerData.setTurn(1);
+        }
+        else if(currentPlayerNumber == 1 && playerData.getScreen().equalsIgnoreCase("waiting")
+                && Server.getPlayerDataList().get(2).getScreen().equalsIgnoreCase("waiting")
+                && Server.getPlayerDataList().get(2).getFlag() == 1)
+        {
+            nextScreen = "play";
+            playerData.setScreen(nextScreen);
+            playerData.setTurn(1);
+        }
         //if player2 is coming from title screen OR it is not the players turn, show waiting screen
-        if(currentScreen.equalsIgnoreCase("title") && playerData.getPlayerNumber()!= 1
+        else if(currentScreen.equalsIgnoreCase("title") && playerData.getPlayerNumber()!= 1
                 || playerData.getTurn() == 0)
         {
             nextScreen = "waiting";
             playerData.setScreen(nextScreen);
+            playerData.setTurn(0);
         }
+        //if player just got done playing
+        else if(playerData.getScreen().equalsIgnoreCase("play"))
+        {
+            nextScreen = "waiting";
+            playerData.setScreen(nextScreen);
+            playerData.setTurn(0);
+            playerData.setFlag(1);
+        }
+        //if player 1 is coming from the title screen
         else if(currentScreen.equalsIgnoreCase("title") && playerData.getPlayerNumber() == 1)
         {
             nextScreen = "play";
             playerData.setScreen(nextScreen);
+            playerData.setTurn(1);
         }
         System.out.println("Deciding screen...\t" + playerData.toString());
         return playerData.toString();
+    }
+
+    public String getJson() {
+        return json;
+    }
+
+    public PlayerData getPlayerData() {
+        return playerData;
     }
 }

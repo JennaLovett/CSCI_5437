@@ -1,8 +1,6 @@
 package finalproject.Mia;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.image.TextureLoader;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import finalproject.Mia.model.PlayerData;
@@ -24,6 +22,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Client extends JFrame
 {
@@ -43,11 +43,11 @@ public class Client extends JFrame
 
     //variables involving screen and rendering
     private JPanel jPanel;
-    
+
     private SimpleUniverse myUniverse;
     private BranchGroup myBranchGroup;
     private Canvas3D myCanvas;
-    
+
     public static void main(String[] args)
     {
         Client player1 = new Client();
@@ -101,23 +101,88 @@ public class Client extends JFrame
             playerData = objectMapper.readValue(jsonMessage, PlayerData.class);
             System.out.println("New playerData = \t" + playerData.toString());
 
-            //load screen
-            loadScreen(playerData.getScreen());
         }
         catch (Exception e)
         {
             System.out.println(e.getMessage());
         }
         
+        //load screen
+        if(playerData.getScreen().equalsIgnoreCase("waiting"))
+        {
+            loadScreen(playerData.getScreen());
+            checkForScreenChange();
+        }
+        else {
+            loadScreen(playerData.getScreen());
+        }
     }
 
-    public void loadTitleScreen()
+    /**
+     * Used when player on waiting screen
+     */
+    private void checkForScreenChange()
     {
+        String server;
+        server = "localhost";
+
+        Timer timer = new Timer();
+
+        timer.schedule(new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    if(playerData.getScreen().equalsIgnoreCase("waiting"))
+                    {
+                        //create socket to connect to server address on port 4999
+                        Socket socket = new Socket(server, 4999);
+
+                        //open stream to write to server
+                        PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
+
+                        //open stream to read from server
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                        //send entire message to server and close stream
+                        System.out.println("\n\nSending to server:\t" + jsonMessage);
+                        printWriter.println(jsonMessage);
+                        printWriter.flush();
+
+                        // to read data from the server
+                        jsonMessage = bufferedReader.readLine();
+                        System.out.println("Receiving from server:\t" + jsonMessage);
+
+                        playerData = objectMapper.readValue(jsonMessage, PlayerData.class);
+                        System.out.println("New playerData = \t" + playerData.toString());
+
+                        //close connection
+                        printWriter.close();
+                        bufferedReader.close();
+                    }
+                    else
+                    {
+                        loadScreen(playerData.getScreen());
+                        timer.cancel();
+                        timer.purge();
+                    }
+                }
+                catch(Exception e)
+                {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }, 0, 7000);
+    }
+
+    public void loadTitleScreen() {
         setTitle("Mia - " + getPlayerNumber());
         setScreen("title");
         jsonMessage = "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
                 "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() +
-                "\", \"screen\":\"" + getScreen() + "\"}";
+                "\", \"screen\":\"" + getScreen() + "\", \"flag\":\"0\"}";
         jPanel = new JPanel();
         initialize(jPanel);
         getContentPane().add(jPanel, BorderLayout.CENTER);
@@ -128,9 +193,9 @@ public class Client extends JFrame
     private void clearPanel()
     {
     	jPanel.removeAll();
-    	
+
     }
-    
+
     public void initialize(JPanel jPanel)
     {
         jPanel.setLayout(new BorderLayout());
@@ -138,9 +203,9 @@ public class Client extends JFrame
         myCanvas = new Canvas3D(config);
         myCanvas.setSize(400, 400);
         myUniverse = new SimpleUniverse(myCanvas);
-        
+
         myBranchGroup = createTitleScreenBranchGroup();
-        
+
         myUniverse.getViewingPlatform().setNominalViewingTransform();
         myUniverse.addBranchGraph(myBranchGroup);
         jPanel.add(myCanvas, BorderLayout.CENTER);
@@ -156,7 +221,7 @@ public class Client extends JFrame
         });
         jPanel.add(startBtn, BorderLayout.SOUTH);
     }
-    
+
     private BranchGroup createTitleScreenBranchGroup()
     {
     	BranchGroup branchGroup = new BranchGroup();
@@ -165,7 +230,7 @@ public class Client extends JFrame
     	branchGroup.setCapability(BranchGroup.ALLOW_DETACH);
     	return branchGroup;
     }
-    
+
     private BranchGroup createWaitingScreenBranchGroup()
     {
     	BranchGroup branchGroup = new BranchGroup();
@@ -202,7 +267,7 @@ public class Client extends JFrame
     {
     	myBranchGroup.detach();
     	myBranchGroup.removeAllChildren();
-    	
+
         if(screen.equalsIgnoreCase("waiting"))
         {
         	clearPanel();
@@ -214,7 +279,7 @@ public class Client extends JFrame
         {
         	clearPanel();
         	jPanel.setLayout(new BorderLayout());
-        	
+
         	myBranchGroup = createPlayingScreenBranchGroup();
             myUniverse.addBranchGraph(myBranchGroup);
             jPanel.add(myCanvas, BorderLayout.CENTER);
@@ -223,7 +288,7 @@ public class Client extends JFrame
             jPanel.add(textField, BorderLayout.NORTH);
             JButton passBtn = new JButton("Pass Dice");
             passBtn.setVisible(true);
-            
+
             passBtn.addMouseListener(new MouseAdapter()
             {
                 public void mouseClicked(MouseEvent m)
@@ -233,7 +298,7 @@ public class Client extends JFrame
 
             });
             jPanel.add(passBtn, BorderLayout.SOUTH);
-            
+
         }
         else if(screen.equalsIgnoreCase("showDice"))
         {
@@ -253,7 +318,7 @@ public class Client extends JFrame
         
         this.revalidate();
         this.repaint();
-        
+
         //this.repaint();
         //getContentPane().add(jPanel, BorderLayout.CENTER);
         //pack();
@@ -272,11 +337,11 @@ public class Client extends JFrame
         pa.setBackFaceNormalFlip(true);
         pa.setCullFace(PolygonAttributes.CULL_NONE);
         ap.setPolygonAttributes(pa);
-        
+
         //load texture for cup
         Texture tex = null;
 		try {
-			tex = new TextureLoader(ImageIO.read( new File("CupTexture.png"))).getTexture();
+			tex = new TextureLoader(ImageIO.read( new File("/Users/jlovett/Desktop/CSCI5437/src/finalproject/Mia/CupTexture.png"))).getTexture();
 			tex.setBoundaryModeS(Texture.WRAP);
 			tex.setBoundaryModeT(Texture.WRAP);
 		} catch (IOException e) {
@@ -290,7 +355,7 @@ public class Client extends JFrame
 			ap.setTexture(tex);
 			ap.setTextureAttributes(texAttrib);
 		}
-        
+
         Shape3D shape = new Shape3D(MiaShapes.createCup(40,1,2), ap);
         //transformation
         Transform3D tr = new Transform3D();
@@ -314,7 +379,7 @@ public class Client extends JFrame
         Background background = new Background(1.0f, 1.0f, 1.0f);
         background.setApplicationBounds(bounds);
         root.addChild(background);
-        
+
         return root;
     }
     
