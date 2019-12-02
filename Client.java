@@ -1,5 +1,6 @@
 package finalproject.Mia;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.j3d.utils.image.TextureLoader;
 import com.sun.j3d.utils.universe.SimpleUniverse;
@@ -20,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -53,6 +53,7 @@ public class Client extends JFrame
 
     public static void main(String[] args)
     {
+        System.out.println(System.getProperty("user.dir"));
         Client player1 = new Client();
         player1.setPlayerNumber(1);
         player1.setTurn(1);
@@ -73,13 +74,7 @@ public class Client extends JFrame
     {
         try
         {
-            //get address of client machine
-            InetAddress inetAddress = InetAddress.getLocalHost();
-            String clientAddress = inetAddress.getHostAddress();
-            System.out.println("Client Address: " + clientAddress);
-
-            String server;
-            server = "localhost";
+            String server = "localhost";
 
             //create socket to connect to server address on port 4999
             Socket socket = new Socket(server, 4999);
@@ -116,7 +111,8 @@ public class Client extends JFrame
             loadScreen(playerData.getScreen());
             checkForScreenChange();
         }
-        else {
+        else
+        {
             loadScreen(playerData.getScreen());
         }
     }
@@ -140,12 +136,9 @@ public class Client extends JFrame
                 {
                     if(playerData.getScreen().equalsIgnoreCase("waiting"))
                     {
-                        System.out.print("In timer for " + playerNumber + " timer = " + timerCount);
                         if(timerCount == 2)
                         {
-                            PlayerData tempData = objectMapper.readValue(jsonMessage, PlayerData.class);
-                            tempData.setFlag(0);
-                            jsonMessage = tempData.toString();
+                            setFlagToZero();
                         }
                         //create socket to connect to server address on port 4999
                         Socket socket = new Socket(server, 4999);
@@ -171,14 +164,13 @@ public class Client extends JFrame
                         //close connection
                         printWriter.close();
                         bufferedReader.close();
+
+                        //increment timer count
                         timerCount++;
                     }
                     else
                     {
-                        PlayerData tempData = objectMapper.readValue(jsonMessage, PlayerData.class);
-                        tempData.setFlag(0);
-                        jsonMessage = tempData.toString();
-                        playerData.setFlag(0);
+                        setFlagToZero();
                         loadScreen(playerData.getScreen());
                         timerCount = 0;
                         timer.cancel();
@@ -357,7 +349,9 @@ public class Client extends JFrame
         //load texture for cup
         Texture tex = null;
 		try {
-			tex = new TextureLoader(ImageIO.read( new File("/Users/jlovett/Desktop/CSCI5437/src/finalproject/Mia/CupTexture.png"))).getTexture();
+			tex = new TextureLoader(ImageIO.read(
+			        new File(System.getProperty("user.dir") + "/src/finalproject/Mia/CupTexture.png")))
+                    .getTexture();
 			tex.setBoundaryModeS(Texture.WRAP);
 			tex.setBoundaryModeT(Texture.WRAP);
 		} catch (IOException e) {
@@ -570,8 +564,8 @@ public class Client extends JFrame
         Font3D font3D = new Font3D(new Font("Arial", Font.BOLD, 1),
                 new FontExtrusion());
 
-        Text3D firstName = new Text3D(font3D, "WAITING", new Point3f(-1.5f, 1f, -4.8f));
-        firstName.setString("WAITING");
+        Text3D waiting = new Text3D(font3D, "WAITING", new Point3f(-1.5f, 1f, -4.8f));
+        waiting.setString("WAITING");
 
         Color3f red = new Color3f(1.0f, 0f, 0f);
         Color3f reddish = new Color3f(1.0f, 0.1f, 0.1f);
@@ -581,7 +575,7 @@ public class Client extends JFrame
         appearance.setMaterial(material);
 
         Shape3D shape3D1 = new Shape3D();
-        shape3D1.setGeometry(firstName);
+        shape3D1.setGeometry(waiting);
         shape3D1.setAppearance(appearance);
 
         TransformGroup transformGroup = new TransformGroup();
@@ -646,6 +640,22 @@ public class Client extends JFrame
     public void rollDice() {
     	die1 = (int)(Math.round(Math.random()*5 + 1));
     	die2 = (int)(Math.round(Math.random()*5 + 1));
+    }
+
+    private void setFlagToZero()
+    {
+        PlayerData tempData = null;
+        try
+        {
+            tempData = objectMapper.readValue(jsonMessage, PlayerData.class);
+        }
+        catch (JsonProcessingException e)
+        {
+            e.printStackTrace();
+        }
+        tempData.setFlag(0);
+        jsonMessage = tempData.toString();
+        playerData.setFlag(0);
     }
     
     public int getTurn() {
