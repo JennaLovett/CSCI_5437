@@ -11,6 +11,7 @@ public class PlayerData
     private int currentScore;
     private String screen;
     private int flag; //just got done playing if 1, otherwise 0
+    private int sentDiceValue;
 
     public int getPlayerNumber() {
         return playerNumber;
@@ -60,12 +61,21 @@ public class PlayerData
         this.flag = flag;
     }
 
+    public int getSentDiceValue() {
+        return sentDiceValue;
+    }
+
+    public void setSentDiceValue(int sentDiceValue) {
+        this.sentDiceValue = sentDiceValue;
+    }
+
     public String toString()
     {
         return "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
                 "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() +
                 "\", \"screen\":\"" + getScreen() +
-                "\", \"flag\":\"" + getFlag() + "\"}";
+                "\", \"flag\":\"" + getFlag() +
+                "\", \"sentDiceValue\":\"" + getSentDiceValue() + "\"}";
     }
 
 }

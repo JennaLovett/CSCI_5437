@@ -53,7 +53,6 @@ public class Client extends JFrame
 
     public static void main(String[] args)
     {
-        System.out.println(System.getProperty("user.dir"));
         Client player1 = new Client();
         player1.setPlayerNumber(1);
         player1.setTurn(1);
@@ -190,7 +189,7 @@ public class Client extends JFrame
         setScreen("title");
         jsonMessage = "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
                 "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() +
-                "\", \"screen\":\"" + getScreen() + "\", \"flag\":\"0\"}";
+                "\", \"screen\":\"" + getScreen() + "\", \"flag\":\"0\", \"sentDiceValue\":\"0\"}";
         jPanel = new JPanel();
         initialize(jPanel);
         getContentPane().add(jPanel, BorderLayout.CENTER);
@@ -292,29 +291,51 @@ public class Client extends JFrame
             myUniverse.addBranchGraph(myBranchGroup);
             jPanel.add(myCanvas, BorderLayout.CENTER);
 
-            textField = new JTextField(1);
-            jPanel.add(textField, BorderLayout.NORTH);
-            JButton passBtn = new JButton("Pass Dice");
-            passBtn.setVisible(true);
-
-            passBtn.addMouseListener(new MouseAdapter()
+            JButton showDiceBtn = new JButton("Show Dice");
+            showDiceBtn.setVisible(true);
+            showDiceBtn.addMouseListener(new MouseAdapter()
             {
                 public void mouseClicked(MouseEvent m)
                 {
-                    connectToServer();
+                    myBranchGroup.detach();
+                    myBranchGroup.removeAllChildren();
+
+                    //shows dice
+                    clearPanel();
+
+                    rollDice();
+                    myBranchGroup = createShowDiceScreenBranchGroup();
+                    myUniverse.addBranchGraph(myBranchGroup);
+                    jPanel.add(myCanvas, BorderLayout.CENTER);
+                    textField = new JTextField(1);
+                    jPanel.add(textField, BorderLayout.NORTH);
+                    JButton passBtn = new JButton("Finish Turn");
+                    passBtn.setVisible(true);
+                    passBtn.addMouseListener(new MouseAdapter()
+                    {
+                        @Override
+                        public void mouseClicked(MouseEvent e)
+                        {
+                            try
+                            {
+                                PlayerData temp = objectMapper.readValue(jsonMessage, PlayerData.class);
+                                temp.setSentDiceValue(Integer.parseInt(textField.getText()));
+                                jsonMessage = temp.toString();
+                            }
+                            catch(Exception ex)
+                            {
+                            }
+                            connectToServer();
+                        }
+                    });
+                    jPanel.add(passBtn, BorderLayout.SOUTH);
+                    jPanel.revalidate();
+                    jPanel.repaint();
                 }
 
             });
-            jPanel.add(passBtn, BorderLayout.SOUTH);
+            jPanel.add(showDiceBtn, BorderLayout.SOUTH);
 
-        }
-        else if(screen.equalsIgnoreCase("showDice"))
-        {
-        	//shows dice
-        	clearPanel();
-        	myBranchGroup = createShowDiceScreenBranchGroup();
-            myUniverse.addBranchGraph(myBranchGroup);
-            jPanel.add(myCanvas, BorderLayout.CENTER);
         }
         else if(screen.equalsIgnoreCase("guess"))
         {
@@ -326,11 +347,6 @@ public class Client extends JFrame
         
         this.revalidate();
         this.repaint();
-
-        //this.repaint();
-        //getContentPane().add(jPanel, BorderLayout.CENTER);
-        //pack();
-        //setVisible(true);
     }
 
     private BranchGroup createPlayScreen() {
@@ -373,8 +389,8 @@ public class Client extends JFrame
         TransformGroup tg = new TransformGroup(tr);
         spin.addChild(tg);
         tg.addChild(shape);
-        Alpha alpha = new Alpha(-1, 10000);
-        RotationInterpolator rotator = new RotationInterpolator(alpha, spin);
+        Alpha alpha = new Alpha(-1, 1000);
+        PositionInterpolator rotator = new PositionInterpolator(alpha, spin);
         BoundingSphere bounds = new BoundingSphere();
         bounds.setRadius(100);
         rotator.setSchedulingBounds(bounds);
@@ -405,8 +421,11 @@ public class Client extends JFrame
         
         //load texture for cup
         Texture tex = null;
-		try {
-			tex = new TextureLoader(ImageIO.read( new File("DiceTexture.png"))).getTexture();
+		try
+        {
+			tex = new TextureLoader(ImageIO.read(
+			        new File(System.getProperty("user.dir") + "/src/finalproject/Mia/DiceTexture.png")))
+                    .getTexture();
 			tex.setBoundaryModeS(Texture.WRAP);
 			tex.setBoundaryModeT(Texture.WRAP);
 		} catch (IOException e) {
