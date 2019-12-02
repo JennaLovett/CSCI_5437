@@ -45,6 +45,9 @@ public class Client extends JFrame
     private BranchGroup myBranchGroup;
     private Canvas3D myCanvas;
 
+    //timer variable
+    private int timerCount = 0;
+
     public static void main(String[] args)
     {
         Client player1 = new Client();
@@ -134,6 +137,13 @@ public class Client extends JFrame
                 {
                     if(playerData.getScreen().equalsIgnoreCase("waiting"))
                     {
+                        System.out.print("In timer for " + playerNumber + " timer = " + timerCount);
+                        if(timerCount == 2)
+                        {
+                            PlayerData tempData = objectMapper.readValue(jsonMessage, PlayerData.class);
+                            tempData.setFlag(0);
+                            jsonMessage = tempData.toString();
+                        }
                         //create socket to connect to server address on port 4999
                         Socket socket = new Socket(server, 4999);
 
@@ -158,10 +168,16 @@ public class Client extends JFrame
                         //close connection
                         printWriter.close();
                         bufferedReader.close();
+                        timerCount++;
                     }
                     else
                     {
+                        PlayerData tempData = objectMapper.readValue(jsonMessage, PlayerData.class);
+                        tempData.setFlag(0);
+                        jsonMessage = tempData.toString();
+                        playerData.setFlag(0);
                         loadScreen(playerData.getScreen());
+                        timerCount = 0;
                         timer.cancel();
                         timer.purge();
                     }
