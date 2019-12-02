@@ -49,7 +49,8 @@ public class Server
     {
         String jsonMessage = "{\"playerNumber\":\"" + 1 + "\", \"turn\":\"" + 1 +
                 "\", \"lives\":\"" + 6 + "\", \"currentScore\":\"" + 0 +
-                "\", \"screen\":\"" + "title" + "\", \"flag\":\"0\", \"sentDiceValue\":\"0\"}";
+                "\", \"screen\":\"" + "title" + "\", \"flag\":\"0\", \"sentDiceValue\":\"0\", \"guess\":\"\", " +
+                "\"receivedDiceValue\":\"0\"}";
         try
         {
             playerDataList.put(1,objectMapper.readValue(jsonMessage, PlayerData.class));
@@ -61,7 +62,8 @@ public class Server
 
         jsonMessage = "{\"playerNumber\":\"" + 2 + "\", \"turn\":\"" + 0 +
                 "\", \"lives\":\"" + 6 + "\", \"currentScore\":\"" + 0 +
-                "\", \"screen\":\"" + "title" + "\", \"flag\":\"0\", \"sentDiceValue\":\"0\"}";
+                "\", \"screen\":\"" + "title" + "\", \"flag\":\"0\", \"sentDiceValue\":\"0\", \"guess\":\"\", " +
+                "\"receivedDiceValue\":\"0\"}";
         try
         {
             playerDataList.put(2,objectMapper.readValue(jsonMessage, PlayerData.class));

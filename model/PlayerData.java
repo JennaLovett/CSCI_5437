@@ -12,6 +12,8 @@ public class PlayerData
     private String screen;
     private int flag; //just got done playing if 1, otherwise 0
     private int sentDiceValue;
+    private String guess;
+    private int receivedDiceValue;
 
     public int getPlayerNumber() {
         return playerNumber;
@@ -69,13 +71,31 @@ public class PlayerData
         this.sentDiceValue = sentDiceValue;
     }
 
+    public String getGuess() {
+        return guess;
+    }
+
+    public void setGuess(String guess) {
+        this.guess = guess;
+    }
+
+    public int getReceivedDiceValue() {
+        return receivedDiceValue;
+    }
+
+    public void setReceivedDiceValue(int receivedDiceValue) {
+        this.receivedDiceValue = receivedDiceValue;
+    }
+
     public String toString()
     {
         return "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
                 "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() +
                 "\", \"screen\":\"" + getScreen() +
                 "\", \"flag\":\"" + getFlag() +
-                "\", \"sentDiceValue\":\"" + getSentDiceValue() + "\"}";
+                "\", \"sentDiceValue\":\"" + getSentDiceValue() +
+                "\", \"guess\":\"" + getGuess() +
+                "\", \"receivedDiceValue\":\"" + getReceivedDiceValue() +"\"}";
     }
 
 }

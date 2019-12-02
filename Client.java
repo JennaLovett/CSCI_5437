@@ -34,7 +34,6 @@ public class Client extends JFrame
     private int playerNumber;
     private int die1 = 0;
     private int die2 = 0;
-    private int bluffValue = 32;
     private String screen;
     private String jsonMessage = "";
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -189,7 +188,8 @@ public class Client extends JFrame
         setScreen("title");
         jsonMessage = "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
                 "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() +
-                "\", \"screen\":\"" + getScreen() + "\", \"flag\":\"0\", \"sentDiceValue\":\"0\"}";
+                "\", \"screen\":\"" + getScreen() + "\", \"flag\":\"0\", \"sentDiceValue\":\"0\", \"guess\":\"\"" +
+                ", \"receivedDiceValue\":\"0\"}";
         jPanel = new JPanel();
         initialize(jPanel);
         getContentPane().add(jPanel, BorderLayout.CENTER);
@@ -343,6 +343,69 @@ public class Client extends JFrame
         	myBranchGroup = createGuessScreenBranchGroup();
             myUniverse.addBranchGraph(myBranchGroup);
             jPanel.add(myCanvas, BorderLayout.CENTER);
+            JPanel subPanel = new JPanel();
+
+            JButton lowerBtn = new JButton("Lower");
+            lowerBtn.addMouseListener(new MouseAdapter()
+            {
+                @Override
+                public void mouseClicked(MouseEvent e)
+                {
+                    try
+                    {
+                        PlayerData temp = objectMapper.readValue(jsonMessage, PlayerData.class);
+                        temp.setGuess("lower");
+                        jsonMessage = temp.toString();
+                        connectToServer();
+                    }
+                    catch(Exception ex)
+                    {
+
+                    }
+                }
+            });
+            JButton acceptBtn = new JButton("Accept");
+            acceptBtn.addMouseListener(new MouseAdapter()
+            {
+                @Override
+                public void mouseClicked(MouseEvent e)
+                {
+                    try
+                    {
+                        PlayerData temp = objectMapper.readValue(jsonMessage, PlayerData.class);
+                        temp.setGuess("accept");
+                        jsonMessage = temp.toString();
+                        connectToServer();
+                    }
+                    catch(Exception ex)
+                    {
+
+                    }
+                }
+            });
+            JButton higherBtn = new JButton("Higher");
+            higherBtn.addMouseListener(new MouseAdapter()
+            {
+                @Override
+                public void mouseClicked(MouseEvent e)
+                {
+                    try
+                    {
+                        PlayerData temp = objectMapper.readValue(jsonMessage, PlayerData.class);
+                        temp.setGuess("higher");
+                        jsonMessage = temp.toString();
+                        connectToServer();
+                    }
+                    catch(Exception ex)
+                    {
+
+                    }
+                }
+            });
+            subPanel.add(lowerBtn);
+            subPanel.add(acceptBtn);
+            subPanel.add(higherBtn);
+            jPanel.add(subPanel, BorderLayout.SOUTH);
         }
         
         this.revalidate();
@@ -386,11 +449,19 @@ public class Client extends JFrame
         //transformation
         Transform3D tr = new Transform3D();
         tr.setScale(0.4);
+
+        Transform3D axis = new Transform3D();
+        axis.rotZ(Math.PI/2);
         TransformGroup tg = new TransformGroup(tr);
         spin.addChild(tg);
         tg.addChild(shape);
         Alpha alpha = new Alpha(-1, 1000);
-        PositionInterpolator rotator = new PositionInterpolator(alpha, spin);
+        alpha.setMode(Alpha.DECREASING_ENABLE | Alpha.INCREASING_ENABLE);
+        alpha.setIncreasingAlphaDuration(100);
+        alpha.setDecreasingAlphaDuration(100);
+
+
+        PositionInterpolator rotator = new PositionInterpolator(alpha, spin, axis, -0.3f, 0.3f);
         BoundingSphere bounds = new BoundingSphere();
         bounds.setRadius(100);
         rotator.setSchedulingBounds(bounds);
@@ -613,7 +684,7 @@ public class Client extends JFrame
         String text1 = "THE OTHER";
         String text2 = "PLAYER SAYS";
         String text3 = "THEY HAVE A";
-        String text4 = "SCORE OF "+bluffValue;
+        String text4 = "SCORE OF " + playerData.getReceivedDiceValue();
         
         Text3D mod1 = new Text3D(font3D, text1, new Point3f(-1.5f, 1.5f, -4.8f));
         mod1.setString(text1);

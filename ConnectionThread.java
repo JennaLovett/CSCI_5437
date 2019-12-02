@@ -57,7 +57,8 @@ public class ConnectionThread extends Thread
                 && Server.getPlayerDataList().get(1).getScreen().equalsIgnoreCase("waiting")
                 && Server.getPlayerDataList().get(1).getFlag() == 1)
         {
-            nextScreen = "play";
+            nextScreen = "guess";
+            playerData.setReceivedDiceValue(Server.getPlayerDataList().get(1).getSentDiceValue());
             playerData.setScreen(nextScreen);
             playerData.setTurn(1);
         }
@@ -66,9 +67,15 @@ public class ConnectionThread extends Thread
                 && Server.getPlayerDataList().get(2).getScreen().equalsIgnoreCase("waiting")
                 && Server.getPlayerDataList().get(2).getFlag() == 1)
         {
-            nextScreen = "play";
+            nextScreen = "guess";
+            playerData.setReceivedDiceValue(Server.getPlayerDataList().get(2).getSentDiceValue());
             playerData.setScreen(nextScreen);
             playerData.setTurn(1);
+        }
+        else if(currentScreen.equalsIgnoreCase("guess"))
+        {
+            nextScreen = "play";
+            playerData.setScreen(nextScreen);
         }
         //if player2 is coming from title screen OR it is not the players turn, show waiting screen
         else if(currentScreen.equalsIgnoreCase("title") && playerData.getPlayerNumber()!= 1
