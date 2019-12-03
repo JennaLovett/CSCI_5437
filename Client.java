@@ -215,12 +215,13 @@ public class Client extends JFrame
     }
 
     public void loadTitleScreen() {
-        setTitle("Mia - " + getPlayerNumber());
         setScreen("title");
         jsonMessage = "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
                 "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() +
                 "\", \"screen\":\"" + getScreen() + "\", \"flag\":\"0\", \"sentDiceValue\":\"0\", \"guess\":\"\"" +
                 ", \"receivedDiceValue\":\"0\", \"actualValue\":\"0\"}";
+        setTitle("Mia - Player: " + getPlayerNumber() + "   Score: " + currentScore + "   Lives: "
+                + lives);
         jPanel = new JPanel();
         initialize(jPanel);
         getContentPane().add(jPanel, BorderLayout.CENTER);
@@ -410,7 +411,14 @@ public class Client extends JFrame
                         {
                             temp.setLives(temp.getLives() - 1);
                         }
-
+                        else
+                        {
+                            temp.setCurrentScore(temp.getActualValue());
+                        }
+                        setTitle("Mia - Player: " + getPlayerNumber() + "   Score: " + temp.getCurrentScore() + "   Lives: "
+                                + temp.getLives());
+                        revalidate();
+                        repaint();
                         jsonMessage = temp.toString();
                         connectToServer();
                     }
@@ -435,6 +443,14 @@ public class Client extends JFrame
                         {
                             temp.setLives(temp.getLives() - 1);
                         }
+                        else
+                        {
+                            temp.setCurrentScore(temp.getActualValue());
+                        }
+                        setTitle("Mia - Player: " + getPlayerNumber() + "   Score: " + temp.getCurrentScore() + "   Lives: "
+                                + temp.getLives());
+                        revalidate();
+                        repaint();
 
                         jsonMessage = temp.toString();
                         connectToServer();
@@ -460,6 +476,14 @@ public class Client extends JFrame
                         {
                             temp.setLives(temp.getLives() - 1);
                         }
+                        else
+                        {
+                            temp.setCurrentScore(temp.getActualValue());
+                        }
+                        setTitle("Mia - Player: " + getPlayerNumber() + "   Score: " + temp.getCurrentScore() + "   Lives: "
+                                + temp.getLives());
+                        revalidate();
+                        repaint();
 
                         jsonMessage = temp.toString();
                         connectToServer();
