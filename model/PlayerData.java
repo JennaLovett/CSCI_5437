@@ -14,6 +14,7 @@ public class PlayerData
     private int sentDiceValue;
     private String guess;
     private int receivedDiceValue;
+    private int actualValue;
 
     public int getPlayerNumber() {
         return playerNumber;
@@ -87,6 +88,14 @@ public class PlayerData
         this.receivedDiceValue = receivedDiceValue;
     }
 
+    public int getActualValue() {
+        return actualValue;
+    }
+
+    public void setActualValue(int actualValue) {
+        this.actualValue = actualValue;
+    }
+
     public String toString()
     {
         return "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
@@ -95,7 +104,8 @@ public class PlayerData
                 "\", \"flag\":\"" + getFlag() +
                 "\", \"sentDiceValue\":\"" + getSentDiceValue() +
                 "\", \"guess\":\"" + getGuess() +
-                "\", \"receivedDiceValue\":\"" + getReceivedDiceValue() +"\"}";
+                "\", \"receivedDiceValue\":\"" + getReceivedDiceValue() +
+                "\", \"actualValue\":\"" + getActualValue() + "\"}";
     }
 
 }

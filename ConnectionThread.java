@@ -59,6 +59,7 @@ public class ConnectionThread extends Thread
         {
             nextScreen = "guess";
             playerData.setReceivedDiceValue(Server.getPlayerDataList().get(1).getSentDiceValue());
+            playerData.setActualValue(Server.getPlayerDataList().get(1).getActualValue());
             playerData.setScreen(nextScreen);
             playerData.setTurn(1);
         }
@@ -69,6 +70,7 @@ public class ConnectionThread extends Thread
         {
             nextScreen = "guess";
             playerData.setReceivedDiceValue(Server.getPlayerDataList().get(2).getSentDiceValue());
+            playerData.setActualValue(Server.getPlayerDataList().get(2).getActualValue());
             playerData.setScreen(nextScreen);
             playerData.setTurn(1);
         }

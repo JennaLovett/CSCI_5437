@@ -189,7 +189,7 @@ public class Client extends JFrame
         jsonMessage = "{\"playerNumber\":\"" + getPlayerNumber() + "\", \"turn\":\"" + getTurn() +
                 "\", \"lives\":\"" + getLives() + "\", \"currentScore\":\"" + getCurrentScore() +
                 "\", \"screen\":\"" + getScreen() + "\", \"flag\":\"0\", \"sentDiceValue\":\"0\", \"guess\":\"\"" +
-                ", \"receivedDiceValue\":\"0\"}";
+                ", \"receivedDiceValue\":\"0\", \"actualValue\":\"0\"}";
         jPanel = new JPanel();
         initialize(jPanel);
         getContentPane().add(jPanel, BorderLayout.CENTER);
@@ -320,6 +320,7 @@ public class Client extends JFrame
                             {
                                 PlayerData temp = objectMapper.readValue(jsonMessage, PlayerData.class);
                                 temp.setSentDiceValue(Integer.parseInt(textField.getText()));
+                                temp.setActualValue(die1 + die2);
                                 jsonMessage = temp.toString();
                             }
                             catch(Exception ex)
@@ -355,6 +356,12 @@ public class Client extends JFrame
                     {
                         PlayerData temp = objectMapper.readValue(jsonMessage, PlayerData.class);
                         temp.setGuess("lower");
+
+                        if(!(temp.getActualValue() < temp.getReceivedDiceValue()))
+                        {
+                            temp.setLives(temp.getLives() - 1);
+                        }
+
                         jsonMessage = temp.toString();
                         connectToServer();
                     }
@@ -374,6 +381,12 @@ public class Client extends JFrame
                     {
                         PlayerData temp = objectMapper.readValue(jsonMessage, PlayerData.class);
                         temp.setGuess("accept");
+
+                        if(temp.getActualValue() != temp.getReceivedDiceValue())
+                        {
+                            temp.setLives(temp.getLives() - 1);
+                        }
+
                         jsonMessage = temp.toString();
                         connectToServer();
                     }
@@ -393,6 +406,12 @@ public class Client extends JFrame
                     {
                         PlayerData temp = objectMapper.readValue(jsonMessage, PlayerData.class);
                         temp.setGuess("higher");
+
+                        if(!(temp.getActualValue() > temp.getReceivedDiceValue()))
+                        {
+                            temp.setLives(temp.getLives() - 1);
+                        }
+
                         jsonMessage = temp.toString();
                         connectToServer();
                     }
