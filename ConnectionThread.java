@@ -53,7 +53,18 @@ public class ConnectionThread extends Thread
         int currentPlayerNumber = playerData.getPlayerNumber();
 
         //if we are dealing with player 2 and player 1 is waiting, then player 2 should play
-        if(currentPlayerNumber == 2 && playerData.getScreen().equalsIgnoreCase("waiting")
+        if(playerData.getLives() <= 0)
+        {
+            nextScreen = "lose";
+            playerData.setScreen(nextScreen);
+        }
+        else if((currentPlayerNumber == 1 && Server.getPlayerDataList().get(2).getLives() == 0) ||
+                (currentPlayerNumber == 2 && Server.getPlayerDataList().get(1).getLives() == 0))
+        {
+            nextScreen = "win";
+            playerData.setScreen(nextScreen);
+        }
+        else if(currentPlayerNumber == 2 && playerData.getScreen().equalsIgnoreCase("waiting")
                 && Server.getPlayerDataList().get(1).getScreen().equalsIgnoreCase("waiting")
                 && Server.getPlayerDataList().get(1).getFlag() == 1)
         {

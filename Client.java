@@ -68,6 +68,37 @@ public class Client extends JFrame
 
     }
 
+    public void updateServer()
+    {
+        try
+        {
+            String server = "localhost";
+
+            //create socket to connect to server address on port 4999
+            Socket socket = new Socket(server, 4999);
+
+            //open stream to write from file testInput1.txt (not included)
+            PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
+
+            //send entire message to server and close stream
+            printWriter.println(jsonMessage);
+
+            // to read data from the server
+            printWriter.flush();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            bufferedReader.readLine();
+
+            //close connection
+            printWriter.close();
+            bufferedReader.close();
+
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+        }
+    }
+
     public void connectToServer()
     {
         try
@@ -180,7 +211,7 @@ public class Client extends JFrame
                     System.out.println(e.getMessage());
                 }
             }
-        }, 0, 7000);
+        }, 0, 2000);
     }
 
     public void loadTitleScreen() {
@@ -266,6 +297,24 @@ public class Client extends JFrame
     	BranchGroup branchGroup = new BranchGroup();
     	addGuessingText(branchGroup);
     	addLights(branchGroup);
+        branchGroup.setCapability(BranchGroup.ALLOW_DETACH);
+        return branchGroup;
+    }
+
+    private BranchGroup createLosingScreenBranchGroup()
+    {
+        BranchGroup branchGroup = new BranchGroup();
+        addLosingText(branchGroup);
+        addLights(branchGroup);
+        branchGroup.setCapability(BranchGroup.ALLOW_DETACH);
+        return branchGroup;
+    }
+
+    private BranchGroup createWinningScreenBranchGroup()
+    {
+        BranchGroup branchGroup = new BranchGroup();
+        addWinningText(branchGroup);
+        addLights(branchGroup);
         branchGroup.setCapability(BranchGroup.ALLOW_DETACH);
         return branchGroup;
     }
@@ -426,7 +475,22 @@ public class Client extends JFrame
             subPanel.add(higherBtn);
             jPanel.add(subPanel, BorderLayout.SOUTH);
         }
-        
+        else if(screen.equalsIgnoreCase("lose"))
+        {
+            clearPanel();
+            myBranchGroup = createLosingScreenBranchGroup();
+            myUniverse.addBranchGraph(myBranchGroup);
+            jPanel.add(myCanvas, BorderLayout.CENTER);
+            updateServer();
+        }
+        else if(screen.equalsIgnoreCase("win"))
+        {
+            clearPanel();
+            myBranchGroup = createWinningScreenBranchGroup();
+            myUniverse.addBranchGraph(myBranchGroup);
+            jPanel.add(myCanvas, BorderLayout.CENTER);
+        }
+
         this.revalidate();
         this.repaint();
     }
@@ -680,6 +744,60 @@ public class Client extends JFrame
         Color3f reddish = new Color3f(1.0f, 0.1f, 0.1f);
         Appearance appearance = new Appearance();
         Material material = new Material(reddish, reddish, reddish, red, 82.0f);
+        material.setLightingEnable(true);
+        appearance.setMaterial(material);
+
+        Shape3D shape3D1 = new Shape3D();
+        shape3D1.setGeometry(waiting);
+        shape3D1.setAppearance(appearance);
+
+        TransformGroup transformGroup = new TransformGroup();
+        Transform3D transform3D = new Transform3D();
+        Vector3f v3f = new Vector3f(-1.0f, -1.0f, -4f);
+        transform3D.setTranslation(v3f);
+        transformGroup.setTransform(transform3D);
+        transformGroup.addChild(shape3D1);
+        branchGroup.addChild(transformGroup);
+    }
+
+    private void addLosingText(BranchGroup branchGroup) {
+        Font3D font3D = new Font3D(new Font("Arial", Font.BOLD, 1),
+                new FontExtrusion());
+
+        Text3D waiting = new Text3D(font3D, "YOU LOSE", new Point3f(-1.5f, 1f, -4.8f));
+        waiting.setString("YOU LOSE");
+
+        Color3f red = new Color3f(1.0f, 0f, 0f);
+        Color3f reddish = new Color3f(1.0f, 0.1f, 0.1f);
+        Appearance appearance = new Appearance();
+        Material material = new Material(reddish, reddish, reddish, red, 82.0f);
+        material.setLightingEnable(true);
+        appearance.setMaterial(material);
+
+        Shape3D shape3D1 = new Shape3D();
+        shape3D1.setGeometry(waiting);
+        shape3D1.setAppearance(appearance);
+
+        TransformGroup transformGroup = new TransformGroup();
+        Transform3D transform3D = new Transform3D();
+        Vector3f v3f = new Vector3f(-1.0f, -1.0f, -4f);
+        transform3D.setTranslation(v3f);
+        transformGroup.setTransform(transform3D);
+        transformGroup.addChild(shape3D1);
+        branchGroup.addChild(transformGroup);
+    }
+
+    private void addWinningText(BranchGroup branchGroup) {
+        Font3D font3D = new Font3D(new Font("Arial", Font.BOLD, 1),
+                new FontExtrusion());
+
+        Text3D waiting = new Text3D(font3D, "YOU WIN!!!", new Point3f(-1.5f, 1f, -4.8f));
+        waiting.setString("YOU WIN!!!");
+
+        Color3f green = new Color3f(0.0f, 1.0f, 0.0f);
+        Color3f greenish = new Color3f(0.2f, 0.9f, 0.2f);
+        Appearance appearance = new Appearance();
+        Material material = new Material(greenish, greenish, greenish, green, 82.0f);
         material.setLightingEnable(true);
         appearance.setMaterial(material);
 
